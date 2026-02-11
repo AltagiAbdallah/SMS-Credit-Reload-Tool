@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoSMS Credit Reload Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        beige: '#FBDCB2',
+                        accent: '#F4C486',
+                        darkText: '#1F2937',
+                        primary: '#F97316', // Orange-500 matching the warmth
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        'input': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FBDCB2;
+            /* Client branding background */
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom Scrollbar for the list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF;
+        }
+
+        /* Spinner Animation */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #ffffff;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Fade In Animation */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-beige text-gray-800 p-4">
+
+    <!-- Main Widget Card -->
+    <div
+        class="bg-white/90 backdrop-blur-sm w-full max-w-lg rounded-2xl shadow-card overflow-hidden transition-all duration-300 transform">
+
+        <!-- Header -->
+        <div class="px-8 pt-8 pb-4">
+            <h1 class="text-xl font-bold text-gray-900 tracking-tight">SMS Top Up</h1>
+        </div>
+
+        <div class="p-8">
+            <!-- Brand Selection -->
+            <div class="mb-8">
+                <label for="brandSelect" class="block text-sm font-medium text-gray-700 mb-2">Choose Business</label>
+                <div class="relative">
+                    <select id="brandSelect"
+                        class="block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm rounded-xl shadow-input bg-gray-50 hover:bg-white transition-colors cursor-pointer appearance-none border">
+                        <option value="" disabled selected>Select a brand...</option>
+                        <option value="silvertree">Silvertree Restaurants</option>
+                        <option value="other">Other Brand (Demo)</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
+                            aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-10 fade-in">
+                <div class="bg-gray-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                        </path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900">No Business Selected</h3>
+                <p class="text-gray-500 mt-1 text-sm">Please choose a brand above to view outlets.</p>
+            </div>
+
+            <!-- Dynamic Content (Hidden by default) -->
+            <div id="outletContainer" class="hidden fade-in space-y-6">
+
+                <!-- Headers -->
+                <div class="flex justify-between items-end px-1">
+                    <h3 class="text-sm font-bold text-gray-900">Outlets:</h3>
+                    <h3 class="text-sm font-bold text-gray-900">Top Up:</h3>
+                </div>
+
+                <!-- Outlet List -->
+                <div id="outletList" class="space-y-3 max-h-[320px] overflow-y-auto custom-scrollbar pr-2">
+                    <!-- Outlet items will be injected here -->
+                </div>
+
+                <!-- Total Section -->
+                <div class="flex justify-between items-center pt-2 px-1">
+                    <span class="text-lg font-bold text-gray-900">Total</span>
+                    <span id="totalDisplay" class="text-2xl font-bold text-gray-900">0</span>
+                </div>
+
+                <!-- Action Button -->
+                <button id="nextBtn" disabled
+                    class="w-full bg-gray-300 text-gray-500 font-semibold py-4 rounded-xl shadow-none cursor-not-allowed transition-all duration-200 flex justify-center items-center">
+                    <span>Next</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer / Branding element -->
+        <div
+            class="bg-gray-50 px-8 py-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400">
+            <span>Powered by GoSMS</span>
+            <span>v1.0.2</span>
+        </div>
+    </div>
+
+    <!-- Success Modal Overlay -->
+    <div id="successModal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center fade-in">
+        <div
+            class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 text-center transform transition-all scale-100">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Quotation Generated</h2>
+            <p class="text-gray-500 mb-6">Your top-up request for <span id="modalBrandName"
+                    class="font-semibold text-gray-800"></span> has been processed successfully.</p>
+
+            <div class="bg-gray-50 rounded-xl p-4 mb-6">
+                <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Amount</p>
+                <p id="modalTotalAmount" class="text-3xl font-bold text-gray-900"></p>
+            </div>
+
+            <button onclick="resetApp()"
+                class="w-full bg-gray-900 text-white font-medium py-3 rounded-xl hover:bg-gray-800 transition-colors shadow-lg">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Data Structure
+        const db = {
+            "silvertree": {
+                name: "Silvertree Restaurants",
+                outlets: [
+                    { id: 1, name: "Binjai Park", company: "Silvertree Oris Sdn Bhd", defaultVal: 300 },
+                    { id: 2, name: "Binjai Park", company: "Silvertree Binjai Sdn Bhd", defaultVal: 300 },
+                    { id: 3, name: "Binjai Park", company: "Silvertree Benja Sdn Bhd", defaultVal: 300 },
+                    { id: 4, name: "Union Square", company: "Silvertree US Sdn Bhd", defaultVal: 0 },
+                ]
+            },
+            "gordon": {
+                name: "Gordon Grill",
+                outlets: [
+                    { id: 101, name: "Orchard Road", company: "Gordon Grill Pte Ltd", defaultVal: 500 },
+                    { id: 102, name: "Marina Bay", company: "Gordon Grill Pte Ltd", defaultVal: 500 },
+                ]
+            },
+            "normans": {
+                name: "Norman's Cafe",
+                outlets: [
+                    { id: 201, name: "East Coast", company: "Norman's F&B", defaultVal: 200 },
+                ]
+            },
+            "nisha": {
+                name: "Nisha's Boulangerie",
+                outlets: [
+                    { id: 301, name: "Tiong Bahru", company: "Nisha Bakes", defaultVal: 150 },
+                    { id: 302, name: "Holland Village", company: "Nisha Bakes", defaultVal: 150 },
+                ]
+            },
+            "binjai": {
+                name: "Binjai Juice Bar",
+                outlets: [
+                    { id: 401, name: "Binjai Park", company: "Juice Works", defaultVal: 100 },
+                ]
+            },
+            "family": {
+                name: "Family Onigiri",
+                outlets: [
+                    { id: 501, name: "Bugis Junction", company: "Family Foods", defaultVal: 300 },
+                    { id: 502, name: "VivoCity", company: "Family Foods", defaultVal: 300 },
+                ]
+            }
+        };
+
+        // DOM Elements
+        const brandSelect = document.getElementById('brandSelect');
+        const emptyState = document.getElementById('emptyState');
+        const outletContainer = document.getElementById('outletContainer');
+        const outletList = document.getElementById('outletList');
+        const totalDisplay = document.getElementById('totalDisplay');
+        const nextBtn = document.getElementById('nextBtn');
+        const successModal = document.getElementById('successModal');
+        const modalBrandName = document.getElementById('modalBrandName');
+        const modalTotalAmount = document.getElementById('modalTotalAmount');
+
+        let currentTotal = 0;
+        let selectedBrandName = "";
+
+        // Populate Dropdown
+        function populateDropdown() {
+            // Keep the first default 'Select' option
+            brandSelect.innerHTML = '<option value="" disabled selected>- Select -</option>';
+
+            Object.keys(db).forEach(key => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = db[key].name;
+                brandSelect.appendChild(option);
+            });
+        }
+
+        // Call immediately
+        populateDropdown();
+
+        // Event Listeners
+        brandSelect.addEventListener('change', (e) => {
+            const brandKey = e.target.value;
+            if (brandKey && db[brandKey]) {
+                renderOutlets(db[brandKey]);
+            } else {
+                showEmptyState();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentTotal > 0) {
+                handleSubmission();
+            }
+        });
+
+        function showEmptyState() {
+            emptyState.classList.remove('hidden');
+            outletContainer.classList.add('hidden');
+        }
+
+        function renderOutlets(brandData) {
+            selectedBrandName = brandData.name;
+
+            // Clear current list
+            outletList.innerHTML = '';
+
+            // Hide empty state, show container
+            emptyState.classList.add('hidden');
+            outletContainer.classList.remove('hidden');
+
+            // Render rows
+            brandData.outlets.forEach(outlet => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between py-1';
+                row.innerHTML = `
+                    <div class="flex-1 pr-4 bg-gray-100 rounded-lg p-3">
+                        <h4 class="font-bold text-gray-900 text-sm leading-tight">${outlet.name}</h4>
+                        <p class="text-xs text-gray-500 leading-tight mt-0.5">${outlet.company}</p>
+                    </div>
+                    <div class="w-24 ml-3">
+                        <input 
+                            type="number" 
+                            min="0"
+                            value="${outlet.defaultVal}" 
+                            class="w-full px-3 py-3 border border-gray-200 rounded-lg text-center font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+                            oninput="updateTotal()"
+                        >
+                    </div>
+                `;
+                outletList.appendChild(row);
+            });
+
+            // Initial total calculation
+            updateTotal();
+        }
+
+        function updateTotal() {
+            const inputs = outletList.querySelectorAll('input[type="number"]');
+            let sum = 0;
+            inputs.forEach(input => {
+                const val = parseFloat(input.value) || 0;
+                sum += val;
+            });
+
+            currentTotal = sum;
+
+            // Animate number count up (simple version)
+            totalDisplay.innerText = currentTotal.toLocaleString();
+
+            updateNextButtonState();
+        }
+
+        function updateNextButtonState() {
+            if (currentTotal > 0) {
+                nextBtn.removeAttribute('disabled');
+                nextBtn.className = 'w-full bg-gradient-to-r from-orange-400 to-accent hover:from-orange-500 hover:to-orange-400 text-white font-bold py-4 rounded-xl shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex justify-center items-center cursor-pointer';
+                nextBtn.innerHTML = `<span>Next</span> <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>`;
+            } else {
+                nextBtn.setAttribute('disabled', 'true');
+                nextBtn.className = 'w-full bg-gray-200 text-gray-400 font-semibold py-4 rounded-xl shadow-none cursor-not-allowed transition-all duration-200 flex justify-center items-center';
+                nextBtn.innerHTML = `<span>Next</span>`;
+            }
+        }
+
+        function handleSubmission() {
+            // Show loading state
+            const originalContent = nextBtn.innerHTML;
+            nextBtn.disabled = true;
+            nextBtn.innerHTML = `<div class="spinner"></div>`;
+            nextBtn.classList.remove('hover:-translate-y-0.5'); // remove hover effect during loading
+
+            // Simulate API call
+            setTimeout(() => {
+                // Show modal
+                modalBrandName.innerText = selectedBrandName;
+                modalTotalAmount.innerText = currentTotal.toLocaleString() + " USD"; // Or appropriate currency symbol
+                successModal.classList.remove('hidden');
+
+                // Reset button state (for background)
+                nextBtn.innerHTML = originalContent;
+                nextBtn.disabled = false;
+            }, 1000);
+        }
+
+        function resetApp() {
+            successModal.classList.add('hidden');
+            // Optional: Reset selections if desired, or keep them.
+            // brandSelect.value = "";
+            // showEmptyState();
+        }
+    </script>
+</body>
+
+</html>
